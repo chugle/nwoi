@@ -1,0 +1,16 @@
+{{extend 'layout.html'}}
+<h3>题目详情</h3>
+{{=form}}
+{{=tijiaourl}}_________{{=jietibaogaourl}}
+        <br><br><br><br>
+<h4>讨论:</h4>
+{{i=1}}
+{{for pinglun in pingluns:}}
+    <div class="center">
+    {{=i}}楼：
+    {{i=i+1}}
+    {{=pinglun}}
+    </div>
+{{pass}}
+
+{{=addpinglun}}

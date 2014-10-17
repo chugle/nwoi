@@ -1,0 +1,547 @@
+(dp1
+S'output'
+p2
+S"<type 'exceptions.KeyError'> 'width'"
+p3
+sS'layer'
+p4
+S'e:\\documents\\nwoi\\web2py\\applications\\nwoi\\controllers/default.py'
+p5
+sS'code'
+p6
+S'# -*- coding: utf-8 -*-\n# this file is released under public domain and you can use without limitations\n\n# ########################################################################\n# # This is a sample controller\n## - index is the default action of any application\n## - user is required for authentication and authorization\n## - download is for downloading files uploaded in the db (does streaming)\n## - api is an example of Hypermedia API support and access control\n#########################################################################\nfrom gluon.tools import Crud\n\ncrud = Crud(db)\ncrud.settings.download_url = URL(\'download\')\ncrud.settings.update_deletable = True\ncrud.settings.keepvalues = True\n\n\ndef congfutimu(form):\n    if db.timu((db.timu.oj == form.vars.oj) & (db.timu.bianhao == form.vars.bianhao)):\n        form.errors = True\n        response.flash = \'\xe9\xa2\x98\xe7\x9b\xae\xe5\xb7\xb2\xe5\xad\x98\xe5\x9c\xa8\'\n\n#            redirect(URL(\'timus\'))\ncrud.settings.create_onvalidation.timu.append(congfutimu)\n\n\'\'\'\ndef congfutijiao(form):\n    print db.tijiao.timu,db.tijiao.zuozhe\n    print \'--\',form.vars\n    if db.tijiao((db.tijiao.timu==form.vars.timu) & (db.tijiao.zuozhe == form.vars.zuozhe)):\n        form.errors = True\n        response.flash = \'\xe5\xb7\xb2\xe6\x8f\x90\xe4\xba\xa4\'\n\n#            redirect(URL(\'timus\'))\ncrud.settings.create_onvalidation.tijiao.append(congfutijiao)\n\'\'\'\n\n\ndef index():\n    """\n    example action using the internationalization operator T and flash\n    rendered by views/default/index.html or views/generic.html\n\n    if you need a simple wiki simply replace the two lines below with:\n    return auth.wiki()\n    """\n    rows = db(db.auth_user).select(db.auth_user.first_name, db.auth_user.jifen, orderby=~db.auth_user.jifen)\n    left = SQLTABLE(rows, headers={\'auth_user.first_name\': \'\xe5\xa7\x93\xe5\x90\x8d\', \'auth_user.jifen\': \'\xe7\xa7\xaf\xe5\x88\x86\'})\n    firstzuoye = db().select(db.zuoye.id).first().id\n    qtid = db.zuoye[firstzuoye].qingtong\n    byid = db.zuoye[firstzuoye].baiying\n    hjid = db.zuoye[firstzuoye].huangjing\n    qttm = db.timu[qtid]\n    bytm = db.timu[byid]\n    hjtm = db.timu[hjid]\n    a1 = A(\'\xe9\x9d\x92\xe9\x93\x9c\xef\xbc\x9a\' + qttm.biaoti, _href=URL(\'viewtimu\', args=[qtid]))\n    a2 = A(\'\xe7\x99\xbd\xe9\x93\xb6\xef\xbc\x9a\' + bytm.biaoti, _href=URL(\'viewtimu\', args=[byid]))\n    a3 = A(\'\xe9\xbb\x84\xe9\x87\x91\xef\xbc\x9a\' + hjtm.biaoti, _href=URL(\'viewtimu\', args=[hjid]))\n\n    return dict(left=left, a1=a1, a2=a2, a3=a3)\n\n\n@auth.requires_login()\ndef createtimu():\n    db.timu.zuozhe.default = auth.user.id\n    return dict(form=crud.create(db.timu, next=URL(\'timus\'), message=\'add sucessed\'))\n\n\n@auth.requires_login()\ndef edittimu():\n    return dict(form=crud.update(db.timu, request.args[0]))\n\n\n@auth.requires_login()\ndef tijiao():\n    timu = request.args[0]\n    if db.tijiao((db.tijiao.timu == timu) & (db.tijiao.zuozhe == auth.user.id)):\n        return dict(message=\'\xe5\xb7\xb2\xe7\xbb\x8f\xe6\x8f\x90\xe4\xba\xa4\xe8\xaf\xa5\xe9\xa2\x98\')\n    db.tijiao.timu.default = timu\n    db.tijiao.zuozhe.default = auth.user.id\n    form = crud.create(db.tijiao, netxt=URL(\'timus\'), message=\'\xe5\xb7\xb2\xe6\x8f\x90\xe4\xba\xa4\')\n    return locals()\n\n\n@auth.requires_login()\ndef createjietibaogao():\n    timu = request.args[0]\n    if db.jietibaogao((db.jietibaogao.timu == timu) & (db.jietibaogao.zuozhe == auth.user.id)):\n        return dict(message=\'\xe5\xb7\xb2\xe7\xbb\x8f\xe6\x8f\x90\xe4\xba\xa4\xe8\xaf\xa5\xe9\xa2\x98\xe8\xa7\xa3\xe9\xa2\x98\xe6\x8a\xa5\xe5\x91\x8a\')\n    db.jietibaogao.timu.default = timu\n    db.jietibaogao.zuozhe.default = auth.user.id\n    form = crud.create(db.jietibaogao, next=URL(\'jietibaogaos\',args=[timu]), message=\'\xe5\xb7\xb2\xe6\x8f\x90\xe4\xba\xa4\')\n    return locals()\n\n@auth.requires_login()\ndef tijiaos():\n    grid = SQLFORM.grid(\n        db.tijiao,\n        fields=[db.tijiao.timu, db.tijiao.zuozhe, db.tijiao.shijian, db.tijiao.yuyan, db.tijiao.tongguo],\n        orderby=~db.tijiao.id,\n        create=False,\n        deletable=False,\n        details=False,\n        editable=False,\n        csv=False,\n        links=[dict(header=\'\xe6\x9f\xa5\xe7\x9c\x8b\', body=lambda row: A(\'\xe6\x9f\xa5\xe7\x9c\x8b\', _href=URL(\'tijiaode\', args=[row.id])))]\n\n    )\n    return locals()\n\n\n@auth.requires_login()\ndef zuoyes():\n    grid = SQLFORM.grid(\n        db.zuoye,\n        orderby=~db.zuoye.id,\n        create=False,\n        deletable=False,\n        editable=False,\n        details=False,\n        csv=False,\n        links_in_grid=True,\n        links=[dict(header=\'\xe6\x9f\xa5\xe7\x9c\x8b\', body=lambda row: A(\'\xe6\x9f\xa5\xe7\x9c\x8b\', _href=URL(\'viewzuoye\', args=[row.id])))]\n    )\n    return locals()\n\n\n@auth.requires_login()\ndef viewtimu():\n    timuid = request.args[0]\n\n    if db.tijiao((db.tijiao.timu == timuid) & (auth.user.id == db.tijiao.zuozhe)):\n        tjid = db.tijiao(db.tijiao.timu == timuid).id\n        tijiaourl = A(\'\xe5\xb7\xb2\xe6\x8f\x90\xe4\xba\xa4\', _href=URL(\'viewtijiao\', args=[tjid]))\n    else:\n        tijiaourl = A(\'\xe6\x8f\x90\xe4\xba\xa4\', _href=URL(\'tijiao\', args=[timuid]))\n    return dict(form=crud.read(db.timu, timuid), tijiaourl=tijiaourl)\n\n\ndef viewtijiao():\n    tjid = request.args[0]\n    if db.tijiao[tjid].zuozhe == auth.user.id:\n        return dict(form=crud.read(db.tijiao, tjid))\n    return \'\xe5\x8f\xaa\xe8\x83\xbd\xe6\x9f\xa5\xe7\x9c\x8b\xe6\x9c\xac\xe4\xba\xba\xe6\x8f\x90\xe4\xba\xa4\'\n\ndef viewjietibaogao():\n    jtbgid = request.args[0]\n    return dict(form=crud.read(db.jietibaogao, jtbgid))\n\n\n@auth.requires_login()\ndef viewzuoye():\n    zuoyeid = request.args[0]\n    qtid = db.zuoye[zuoyeid].qingtong\n    byid = db.zuoye[zuoyeid].baiying\n    hjid = db.zuoye[zuoyeid].huangjing\n    qttm = db.timu[qtid]\n    bytm = db.timu[byid]\n    hjtm = db.timu[hjid]\n    a1 = A(\'\xe9\x9d\x92\xe9\x93\x9c\xef\xbc\x9a\' + qttm.biaoti, _href=URL(\'viewtimu\', args=[qtid]))\n    a2 = A(\'\xe7\x99\xbd\xe9\x93\xb6\xef\xbc\x9a\' + bytm.biaoti, _href=URL(\'viewtimu\', args=[byid]))\n    a3 = A(\'\xe9\xbb\x84\xe9\x87\x91\xef\xbc\x9a\' + hjtm.biaoti, _href=URL(\'viewtimu\', args=[hjid]))\n\n    return dict(a1=a1, a2=a2, a3=a3)\n\n\n@auth.requires(auth.has_membership(role=\'teacher\'), requires_login=True)\ndef managetijiaos():\n    grid = SQLFORM.smartgrid(\n        db.tijiao,\n\n        editable=True,\n        details=True,\n        selectable=None,\n        create=True\n    )\n    return dict(form=grid)\n\n\n@auth.requires(auth.has_membership(role=\'teacher\'), requires_login=True)\ndef managezuoyes():\n    grid = SQLFORM.smartgrid(db.zuoye, orderby=~db.zuoye.id)\n    return dict(form=grid)\n\n\n@auth.requires_login()\ndef timus():\n    add = A(\'\xe6\x96\xb0\xe5\xbb\xba\', _href=URL(\'createtimu\'))\n    grid = SQLFORM.grid(\n        db.timu,\n        fields=[db.timu.biaoti, db.timu.zuozhe, db.timu.shijian, db.timu.oj, db.timu.bianhao, db.timu.jifen,\n                ],\n        orderby=~db.timu.id,\n        create=False,\n        deletable=False,\n        editable=False,\n        csv=False,\n        links_in_grid=True,\n        details=False,\n        links=[dict(header=\'\xe6\x8f\x90\xe4\xba\xa4\', body=lambda row: A(\'\xe6\x8f\x90\xe4\xba\xa4\', _href=URL(\'tijiao\', args=[row.id]))),\n               dict(header=\'\xe6\x9f\xa5\xe7\x9c\x8b\', body=lambda row: A(\'\xe6\x9f\xa5\xe7\x9c\x8b\', _href=URL(\'viewtimu\', args=[row.id]))),\n                dict(header=\'\xe8\xa7\xa3\xe9\xa2\x98\xe6\x8a\xa5\xe5\x91\x8a\', body=lambda row: A(\'\xe6\x8a\xa5\xe5\x91\x8a\', _href=URL(\'jietibaogaos\', args=[row.id])))]\n    )\n    return locals()\n\n@auth.requires_login()\ndef jietibaogaos():\n    timuid=request.args(0)\n    print timuid\n    add = A(\'\xe6\x96\xb0\xe5\xbb\xba\', _href=URL(\'createjietibaogao\',args=[timuid]))\n    if timuid:\n        rows=db(db.jietibaogao.timu==timuid).select(db.jietibaogao.id,\n                                               db.jietibaogao.zuozhe,\n                                               db.jietibaogao.shijian,\n                                               db.jietibaogao.jifen,\n                                               orderby=~db.jietibaogao.jifen\n                                               )\n\n    else:\n        rows=db().select(db.jietibaogao.id,\n                                               db.jietibaogao.timu,\n                                               db.jietibaogao.zuozhe,\n                                               db.jietibaogao.shijian,\n                                               db.jietibaogao.jifen,\n                                               orderby=~db.jietibaogao.jifen\n                                            )\n    form=SQLTABLE(rows,extracolumns=[{\'content\':lambda row, rc: row.id}])\n    return dict(form=form)\n\n\n@auth.requires(auth.has_membership(role=\'teacher\'), requires_login=True)\ndef managejietibaogaos():\n    grid = SQLFORM.smartgrid(db.jietibaogao, orderby=~db.jietibaogao.id)\n    return dict(form=grid)\n\n\n\n@auth.requires(auth.has_membership(role=\'teacher\'), requires_login=True)\ndef managetimus():\n    grid = SQLFORM.smartgrid(\n        db.timu,\n\n        editable=True,\n        details=True,\n        selectable=None,\n        create=True\n    )\n    return dict(form=grid)\n\n\ndef user():\n    """\n    exposes:\n    http://..../[app]/default/user/login\n    http://..../[app]/default/user/logout\n    http://..../[app]/default/user/register\n    http://..../[app]/default/user/profile\n    http://..../[app]/default/user/retrieve_password\n    http://..../[app]/default/user/change_password\n    http://..../[app]/default/user/manage_users (requires membership in\n    use @auth.requires_login()\n        @auth.requires_membership(\'group name\')\n        @auth.requires_permission(\'read\',\'table name\',record_id)\n    to decorate functions that need access control\n    """\n    return dict(form=auth())\n\n\n@cache.action()\ndef download():\n    """\n    allows downloading of uploaded files\n    http://..../[app]/default/download/[filename]\n    """\n    return response.download(request, db)\n\n\ndef call():\n    """\n    exposes services. for example:\n    http://..../[app]/default/call/jsonrpc\n    decorate with @services.jsonrpc the functions to expose\n    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv\n    """\n    return service()\n\n\n@auth.requires_login()\ndef api():\n    """\n    this is example of API with access control\n    WEB2PY provides Hypermedia API (Collection+JSON) Experimental\n    """\n    from gluon.contrib.hypermedia import Collection\n\n    rules = {\n        \'<tablename>\': {\'GET\': {}, \'POST\': {}, \'PUT\': {}, \'DELETE\': {}},\n    }\n    return Collection(db).process(request, response, rules)\n\nresponse._vars=response._caller(jietibaogaos)\n'
+p7
+sS'snapshot'
+p8
+(dp9
+S'exception'
+p10
+(dp11
+S'__hash__'
+p12
+S"<method-wrapper '__hash__' of exceptions.KeyError object>"
+p13
+sS'__setattr__'
+p14
+S"<method-wrapper '__setattr__' of exceptions.KeyError object>"
+p15
+sS'__reduce_ex__'
+p16
+S'<built-in method __reduce_ex__ of exceptions.KeyError object>'
+p17
+sS'__getslice__'
+p18
+S"<method-wrapper '__getslice__' of exceptions.KeyError object>"
+p19
+sS'__getitem__'
+p20
+S"<method-wrapper '__getitem__' of exceptions.KeyError object>"
+p21
+sS'__setstate__'
+p22
+S'<built-in method __setstate__ of exceptions.KeyError object>'
+p23
+sS'__reduce__'
+p24
+S'<built-in method __reduce__ of exceptions.KeyError object>'
+p25
+sS'__str__'
+p26
+S"<method-wrapper '__str__' of exceptions.KeyError object>"
+p27
+sS'__format__'
+p28
+S'<built-in method __format__ of exceptions.KeyError object>'
+p29
+sS'__getattribute__'
+p30
+S"<method-wrapper '__getattribute__' of exceptions.KeyError object>"
+p31
+sS'__class__'
+p32
+S"<type 'exceptions.KeyError'>"
+p33
+sS'__unicode__'
+p34
+S'<built-in method __unicode__ of exceptions.KeyError object>'
+p35
+sS'__delattr__'
+p36
+S"<method-wrapper '__delattr__' of exceptions.KeyError object>"
+p37
+sS'__subclasshook__'
+p38
+S'<built-in method __subclasshook__ of type object>'
+p39
+sS'__repr__'
+p40
+S"<method-wrapper '__repr__' of exceptions.KeyError object>"
+p41
+sS'__dict__'
+p42
+S'{}'
+p43
+sS'args'
+p44
+S"('width',)"
+p45
+sS'__sizeof__'
+p46
+S'<built-in method __sizeof__ of exceptions.KeyError object>'
+p47
+sS'__doc__'
+p48
+S"'Mapping key not found.'"
+p49
+sS'__init__'
+p50
+S"<method-wrapper '__init__' of exceptions.KeyError object>"
+p51
+sS'__new__'
+p52
+S'<built-in method __new__ of type object>'
+p53
+ssS'evalue'
+p54
+S"'width'"
+p55
+sS'request'
+p56
+cgluon.html
+XML_unpickle
+p57
+(S'sf_\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">ajax</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">application</td><td style="vertical-align:top;">:</td><td><div>nwoi</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">args</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>13</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cid</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">client</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">controller</td><td style="vertical-align:top;">:</td><td><div>default</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cookies</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">session_id_admin</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-1bf955ce-e978-4873-9253-3649021ad47a<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_nwoi</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-a165d2e5-133f-4019-b27a-da43917d7ab6<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_welcome</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-6b4cbf45-a156-49ff-8ea3-472e34f57743<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">env</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT</td><td style="vertical-align:top;">:</td><td><div>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT_ENCODING</td><td style="vertical-align:top;">:</td><td><div>gzip, deflate</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT_LANGUAGE</td><td style="vertical-align:top;">:</td><td><div>zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_CACHE_CONTROL</td><td style="vertical-align:top;">:</td><td><div>max-age=0</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_CONNECTION</td><td style="vertical-align:top;">:</td><td><div>keep-alive</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_COOKIE</td><td style="vertical-align:top;">:</td><td><div>session_id_welcome=127.0.0.1-6b4cbf45-a156-49ff-8ea3-472e34f57743; session_id_nwoi=127.0.0.1-a165d2e5-133f-4019-b27a-da43917d7ab6; session_id_admin=127.0.0.1-1bf955ce-e978-4873-9253-3649021ad47a</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_HOST</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1:8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_REFERER</td><td style="vertical-align:top;">:</td><td><div>http://127.0.0.1:8000/nwoi/default/timus?_signature=d8d2ff29c1d2f9f33ecff036154f44c54c16df00</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_USER_AGENT</td><td style="vertical-align:top;">:</td><td><div>Mozilla/5.0 (Windows NT 6.1; WOW64; rv:32.0) Gecko/20100101 Firefox/32.0</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">PATH_INFO</td><td style="vertical-align:top;">:</td><td><div>/nwoi/default/jietibaogaos/13</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">QUERY_STRING</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REMOTE_ADDR</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REMOTE_PORT</td><td style="vertical-align:top;">:</td><td><div>49738</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REQUEST_METHOD</td><td style="vertical-align:top;">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SCRIPT_NAME</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_NAME</td><td style="vertical-align:top;">:</td><td><div>chugle-PC</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_PORT</td><td style="vertical-align:top;">:</td><td><div>8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_PROTOCOL</td><td style="vertical-align:top;">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_SOFTWARE</td><td style="vertical-align:top;">:</td><td><div>Rocket 1.2.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">app_folders</td><td style="vertical-align:top;">:</td><td><div>set([&#x27;e:\\\\documents\\\\nwoi\\\\web2py\\\\applications\\\\admin\\\\&#x27;, &#x27;e:\\\\documents\\\\nwoi\\\\web2py\\\\applications\\\\welcome\\\\&#x27;, &#x27;e:\\\\documents\\\\nwoi\\\\web2py\\\\applications\\\\nwoi\\\\&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">applications_parent</td><td style="vertical-align:top;">:</td><td><div>e:\\documents\\nwoi\\web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_args</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_options</td><td style="vertical-align:top;">:</td><td><div>&lt;Values at 0x3938888: {&#x27;verbose&#x27;: False, &#x27;ip&#x27;: &#x27;127.0.0.1&#x27;, &#x27;debuglevel&#x27;: 30, &#x27;with_scheduler&#x27;: False, &#x27;ips&#x27;: [&#x27;fe80::48c:b86:3f57:ff9a%14&#x27;, &#x27;fe80::79ba:218c:bbc4:9c4b%15&#x27;, &#x27;192.168.0.101&#x27;, &#x27;2001:0:9d38:90d7:48c:b86:3f57:ff9a&#x27;], &#x27;shutdown_timeout&#x27;: 5, &#x27;taskbar&#x27;: False, &#x27;with_coverage&#x27;: False, &#x27;scheduler_groups&#x27;: None, &#x27;port&#x27;: 8000, &#x27;maxthreads&#x27;: None, &#x27;softcron&#x27;: False, &#x27;server_name&#x27;: &#x27;chugle-PC&#x27;, &#x27;bpython&#x27;: False, &#x27;nogui&#x27;: False, &#x27;pid_filename&#x27;: &#x27;httpserver.pid&#x27;, &#x27;extcron&#x27;: False, &#x27;runcron&#x27;: False, &#x27;run_system_tests&#x27;: False, &#x27;test&#x27;: None, &#x27;folder&#x27;: &#x27;e:\\\\documents\\\\nwoi\\\\web2py&#x27;, &#x27;config&#x27;: &#x27;&#x27;, &#x27;minthreads&#x27;: None, &#x27;shell&#x27;: None, &#x27;run&#x27;: &#x27;&#x27;, &#x27;log_filename&#x27;: &#x27;httpserver.log&#x27;, &#x27;profiler_dir&#x27;: None, &#x27;args&#x27;: [&#x27;&#x27;], &#x27;socket_timeout&#x27;: 5, &#x27;ssl_ca_certificate&#x27;: None, &#x27;scheduler&#x27;: None, &#x27;interfaces&#x27;: None, &#x27;ssl_private_key&#x27;: &#x27;&#x27;, &#x27;gae&#x27;: None, &#x27;password&#x27;: &#x27;&lt;ask&gt;&#x27;, &#x27;request_queue_size&#x27;: 5, &#x27;ssl_certificate&#x27;: &#x27;&#x27;, &#x27;cronjob&#x27;: False, &#x27;numthreads&#x27;: None, &#x27;quiet&#x27;: False, &#x27;import_models&#x27;: False, &#x27;timeout&#x27;: 10, &#x27;plain&#x27;: False, &#x27;nobanner&#x27;: False}&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">db_sessions</td><td style="vertical-align:top;">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">debugging</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">gluon_parent</td><td style="vertical-align:top;">:</td><td><div>e:\\documents\\nwoi\\web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept</td><td style="vertical-align:top;">:</td><td><div>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept_encoding</td><td style="vertical-align:top;">:</td><td><div>gzip, deflate</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept_language</td><td style="vertical-align:top;">:</td><td><div>zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_cache_control</td><td style="vertical-align:top;">:</td><td><div>max-age=0</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_connection</td><td style="vertical-align:top;">:</td><td><div>keep-alive</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_cookie</td><td style="vertical-align:top;">:</td><td><div>session_id_welcome=127.0.0.1-6b4cbf45-a156-49ff-8ea3-472e34f57743; session_id_nwoi=127.0.0.1-a165d2e5-133f-4019-b27a-da43917d7ab6; session_id_admin=127.0.0.1-1bf955ce-e978-4873-9253-3649021ad47a</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_host</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1:8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_referer</td><td style="vertical-align:top;">:</td><td><div>http://127.0.0.1:8000/nwoi/default/timus?_signature=d8d2ff29c1d2f9f33ecff036154f44c54c16df00</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_user_agent</td><td style="vertical-align:top;">:</td><td><div>Mozilla/5.0 (Windows NT 6.1; WOW64; rv:32.0) Gecko/20100101 Firefox/32.0</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_jython</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_pypy</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_source</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">local_hosts</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>2001:0:9d38:90d7:48c:b86:3f57:ff9a</div></td></tr><tr><td><div>chugle-PC</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>::1</div></td></tr><tr><td><div>fe80::48c:b86:3f57:ff9a%14</div></td></tr><tr><td><div>192.168.0.101</div></td></tr><tr><td><div>fe80::79ba:218c:bbc4:9c4b%15</div></td></tr><tr><td><div>127.0.0.1</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path_info</td><td style="vertical-align:top;">:</td><td><div>/nwoi/default/jietibaogaos/13</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">query_string</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remote_addr</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remote_port</td><td style="vertical-align:top;">:</td><td><div>49738</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">request_method</td><td style="vertical-align:top;">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">request_uri</td><td style="vertical-align:top;">:</td><td><div>/nwoi/default/jietibaogaos/13</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">script_name</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_name</td><td style="vertical-align:top;">:</td><td><div>chugle-PC</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_port</td><td style="vertical-align:top;">:</td><td><div>8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_protocol</td><td style="vertical-align:top;">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_software</td><td style="vertical-align:top;">:</td><td><div>Rocket 1.2.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_path</td><td style="vertical-align:top;">:</td><td><div>e:\\documents\\nwoi\\web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_version</td><td style="vertical-align:top;">:</td><td><div>2.9.11-stable+timestamp.2014.09.15.23.35.11</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.errors</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;&lt;stderr&gt;&#x27;, mode &#x27;w&#x27; at 0x0000000001CB6150&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.file_wrapper</td><td style="vertical-align:top;">:</td><td><div>&lt;class wsgiref.util.FileWrapper at 0x0000000002414528&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.input</td><td style="vertical-align:top;">:</td><td><div>&lt;socket._fileobject object at 0x0000000008A819A8&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.multiprocess</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.multithread</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.run_once</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.url_scheme</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.version</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_errors</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;&lt;stderr&gt;&#x27;, mode &#x27;w&#x27; at 0x0000000001CB6150&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_file_wrapper</td><td style="vertical-align:top;">:</td><td><div>&lt;class wsgiref.util.FileWrapper at 0x0000000002414528&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_input</td><td style="vertical-align:top;">:</td><td><div>&lt;socket._fileobject object at 0x0000000008A819A8&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_multiprocess</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_multithread</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_run_once</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_url_scheme</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_version</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">extension</td><td style="vertical-align:top;">:</td><td><div>html</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">folder</td><td style="vertical-align:top;">:</td><td><div>e:\\documents\\nwoi\\web2py\\applications\\nwoi\\</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">function</td><td style="vertical-align:top;">:</td><td><div>jietibaogaos</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">global_settings</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">app_folders</td><td style="vertical-align:top;">:</td><td><div>set([&#x27;e:\\\\documents\\\\nwoi\\\\web2py\\\\applications\\\\admin\\\\&#x27;, &#x27;e:\\\\documents\\\\nwoi\\\\web2py\\\\applications\\\\welcome\\\\&#x27;, &#x27;e:\\\\documents\\\\nwoi\\\\web2py\\\\applications\\\\nwoi\\\\&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">applications_parent</td><td style="vertical-align:top;">:</td><td><div>e:\\documents\\nwoi\\web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_args</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cmd_options</td><td style="vertical-align:top;">:</td><td><div>&lt;Values at 0x3938888: {&#x27;verbose&#x27;: False, &#x27;ip&#x27;: &#x27;127.0.0.1&#x27;, &#x27;debuglevel&#x27;: 30, &#x27;with_scheduler&#x27;: False, &#x27;ips&#x27;: [&#x27;fe80::48c:b86:3f57:ff9a%14&#x27;, &#x27;fe80::79ba:218c:bbc4:9c4b%15&#x27;, &#x27;192.168.0.101&#x27;, &#x27;2001:0:9d38:90d7:48c:b86:3f57:ff9a&#x27;], &#x27;shutdown_timeout&#x27;: 5, &#x27;taskbar&#x27;: False, &#x27;with_coverage&#x27;: False, &#x27;scheduler_groups&#x27;: None, &#x27;port&#x27;: 8000, &#x27;maxthreads&#x27;: None, &#x27;softcron&#x27;: False, &#x27;server_name&#x27;: &#x27;chugle-PC&#x27;, &#x27;bpython&#x27;: False, &#x27;nogui&#x27;: False, &#x27;pid_filename&#x27;: &#x27;httpserver.pid&#x27;, &#x27;extcron&#x27;: False, &#x27;runcron&#x27;: False, &#x27;run_system_tests&#x27;: False, &#x27;test&#x27;: None, &#x27;folder&#x27;: &#x27;e:\\\\documents\\\\nwoi\\\\web2py&#x27;, &#x27;config&#x27;: &#x27;&#x27;, &#x27;minthreads&#x27;: None, &#x27;shell&#x27;: None, &#x27;run&#x27;: &#x27;&#x27;, &#x27;log_filename&#x27;: &#x27;httpserver.log&#x27;, &#x27;profiler_dir&#x27;: None, &#x27;args&#x27;: [&#x27;&#x27;], &#x27;socket_timeout&#x27;: 5, &#x27;ssl_ca_certificate&#x27;: None, &#x27;scheduler&#x27;: None, &#x27;interfaces&#x27;: None, &#x27;ssl_private_key&#x27;: &#x27;&#x27;, &#x27;gae&#x27;: None, &#x27;password&#x27;: &#x27;&lt;ask&gt;&#x27;, &#x27;request_queue_size&#x27;: 5, &#x27;ssl_certificate&#x27;: &#x27;&#x27;, &#x27;cronjob&#x27;: False, &#x27;numthreads&#x27;: None, &#x27;quiet&#x27;: False, &#x27;import_models&#x27;: False, &#x27;timeout&#x27;: 10, &#x27;plain&#x27;: False, &#x27;nobanner&#x27;: False}&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">db_sessions</td><td style="vertical-align:top;">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">debugging</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">gluon_parent</td><td style="vertical-align:top;">:</td><td><div>e:\\documents\\nwoi\\web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_jython</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_pypy</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_source</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">local_hosts</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>2001:0:9d38:90d7:48c:b86:3f57:ff9a</div></td></tr><tr><td><div>chugle-PC</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>::1</div></td></tr><tr><td><div>fe80::48c:b86:3f57:ff9a%14</div></td></tr><tr><td><div>192.168.0.101</div></td></tr><tr><td><div>fe80::79ba:218c:bbc4:9c4b%15</div></td></tr><tr><td><div>127.0.0.1</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_version</td><td style="vertical-align:top;">:</td><td><div>2.9.11-stable+timestamp.2014.09.15.23.35.11</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_https</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_local</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_restful</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_sheduler</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_shell</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">now</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2014, 10, 15, 15, 20, 52, 701000)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">raw_args</td><td style="vertical-align:top;">:</td><td><div>13</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">raw_extension</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">url</td><td style="vertical-align:top;">:</td><td><div>/nwoi/default/jietibaogaos/13</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">utcnow</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2014, 10, 15, 7, 20, 52, 701000)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">uuid</td><td style="vertical-align:top;">:</td><td><div>nwoi/127.0.0.1.2014-10-15.15-20-52.dc52cb2a-cab9-45df-be7d-2b87b5ba15b8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi</td><td style="vertical-align:top;">:</td><td><div>&lt;gluon.main.LazyWSGI object at 0x000000000394CA90&gt;</div></td></tr></table></div>'
+tRp58
+sS'frames'
+p59
+(lp60
+(dp61
+S'file'
+p62
+S'E:\\documents\\nwoi\\web2py\\gluon\\restricted.py'
+p63
+sS'dump'
+p64
+(dp65
+S'environment'
+p66
+S"{'A': <class 'gluon.html.A'>, 'ANY_OF': <class 'gluon.validators.ANY_OF'>, 'ASSIGNJS': <function ASSIGNJS>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'BUTTON': <class 'gluon.html.BUTTON'>, 'CAT': <class 'gluon.html.CAT'>, ...}"
+p67
+sS'ccode'
+p68
+S'<code object <module> at 000000000959BEB0, file ...plications\\nwoi\\controllers/default.py", line 11>'
+p69
+ssS'lnum'
+p70
+I224
+sS'lines'
+p71
+(dp72
+I224
+S'        exec ccode in environment'
+p73
+sI225
+S'    except HTTP:'
+p74
+sI226
+S'        raise'
+p75
+sI227
+S'    except RestrictedError:'
+p76
+sI228
+S'        # do not encapsulate (obfuscate) the original RestrictedError'
+p77
+sI219
+S'    try:'
+p78
+sI220
+S'        if isinstance(code, types.CodeType):'
+p79
+sI221
+S'            ccode = code'
+p80
+sI222
+S'        else:'
+p81
+sI223
+S'            ccode = compile2(code, layer)'
+p82
+ssS'call'
+p83
+S"(code='# -*- coding: utf-8 -*-\\n# this file is released ...)\\n\\nresponse._vars=response._caller(jietibaogaos)\\n', environment={'A': <class 'gluon.html.A'>, 'ANY_OF': <class 'gluon.validators.ANY_OF'>, 'ASSIGNJS': <function ASSIGNJS>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'BUTTON': <class 'gluon.html.BUTTON'>, 'CAT': <class 'gluon.html.CAT'>, ...}, layer=r'e:\\documents\\nwoi\\web2py\\applications\\nwoi\\controllers/default.py')"
+p84
+sS'func'
+p85
+S'restricted'
+p86
+sa(dp87
+g62
+S'e:\\documents\\nwoi\\web2py\\applications\\nwoi\\controllers\\default.py'
+p88
+sg64
+(dp89
+sg70
+I302
+sg71
+(dp90
+I291
+S'    """'
+p91
+sI292
+S'    this is example of API with access control'
+p92
+sI293
+S'    WEB2PY provides Hypermedia API (Collection+JSON) Experimental'
+p93
+sI294
+S'    """'
+p94
+sI295
+S'    from gluon.contrib.hypermedia import Collection'
+p95
+sI296
+S''
+sI297
+S'    rules = {'
+p96
+sI298
+S"        '<tablename>': {'GET': {}, 'POST': {}, 'PUT': {}, 'DELETE': {}},"
+p97
+sI299
+S'    }'
+p98
+sI300
+S'    return Collection(db).process(request, response, rules)'
+p99
+ssg83
+S'()'
+p100
+sg85
+S'<module>'
+p101
+sa(dp102
+g62
+S'E:\\documents\\nwoi\\web2py\\gluon\\globals.py'
+p103
+sg64
+(dp104
+S'self'
+p105
+S'undefined'
+p106
+sS'f'
+S'<function jietibaogaos>'
+p107
+ssg70
+I392
+sg71
+(dp108
+I387
+S"        self.flash = ''            # used by the default view layout"
+p109
+sI388
+S'        self.meta = Storage()      # used by web2py_ajax.html'
+p110
+sI389
+S'        self.menu = []             # used by the default view layout'
+p111
+sI390
+S'        self.files = []            # used by web2py_ajax.html'
+p112
+sI391
+S'        self._vars = None'
+p113
+sI392
+S'        self._caller = lambda f: f()'
+p114
+sI393
+S'        self._view_environment = None'
+p115
+sI394
+S'        self._custom_commit = None'
+p116
+sI395
+S'        self._custom_rollback = None'
+p117
+sI396
+S"        self.generic_patterns = ['*']"
+p118
+ssg83
+S'(f=<function jietibaogaos>)'
+p119
+sg85
+S'<lambda>'
+p120
+sa(dp121
+g62
+S'E:\\documents\\nwoi\\web2py\\gluon\\tools.py'
+p122
+sg64
+(dp123
+S'action'
+p124
+S'<function jietibaogaos>'
+p125
+sS'a'
+S'()'
+p126
+sS'b'
+g43
+ssg70
+I3439
+sg71
+(dp127
+I3434
+S'                    flag = condition'
+p128
+sI3435
+S'                if not flag:'
+p129
+sI3436
+S'                    current.session.flash = self.messages.access_denied'
+p130
+sI3437
+S'                    return call_or_redirect('
+p131
+sI3438
+S'                        self.settings.on_failed_authorization)'
+p132
+sI3439
+S'                return action(*a, **b)'
+p133
+sI3440
+S'            f.__doc__ = action.__doc__'
+p134
+sI3441
+S'            f.__name__ = action.__name__'
+p135
+sI3442
+S'            f.__dict__.update(action.__dict__)'
+p136
+sI3443
+S'            return f'
+p137
+ssg83
+S'(*a=(), **b={})'
+p138
+sg85
+S'f'
+sa(dp139
+g62
+S'e:\\documents\\nwoi\\web2py\\applications\\nwoi\\controllers\\default.py'
+p140
+sg64
+(dp141
+S'auth.has_membership'
+p142
+S'<bound method Auth.has_membership of <gluon.tools.Auth object>>'
+p143
+sS'auth.requires'
+p144
+S'<bound method Auth.requires of <gluon.tools.Auth object>>'
+p145
+sS'builtinTrue'
+p146
+S'True'
+p147
+sS'global auth'
+p148
+S'<gluon.tools.Auth object>'
+p149
+sS'role'
+p150
+g106
+sS'requires_login'
+p151
+g106
+ssg70
+I228
+sg71
+(dp152
+I224
+S'                                               db.jietibaogao.shijian,'
+p153
+sI225
+S'                                               db.jietibaogao.jifen,'
+p154
+sI226
+S'                                               orderby=~db.jietibaogao.jifen'
+p155
+sI227
+S'                                            )'
+p156
+sI228
+S"    form=SQLTABLE(rows,extracolumns=[{'content':lambda row, rc: row.id}])"
+p157
+sI229
+S'    return dict(form=form)'
+p158
+sI230
+S''
+sI231
+S''
+sI232
+S"@auth.requires(auth.has_membership(role='teacher'), requires_login=True)"
+p159
+sI223
+S'                                               db.jietibaogao.zuozhe,'
+p160
+ssg83
+S'()'
+p161
+sg85
+S'jietibaogaos'
+p162
+sa(dp163
+g62
+S'E:\\documents\\nwoi\\web2py\\gluon\\sqlhtml.py'
+p164
+sg64
+(dp165
+S'c'
+S"{'content': <function <lambda>>}"
+p166
+ssg70
+I3043
+sg71
+(dp167
+I3040
+S'            if extracolumns:  # new implement dict'
+p168
+sI3041
+S'                for c in extracolumns:'
+p169
+sI3042
+S'                    attrcol = dict()'
+p170
+sI3043
+S'                    if c[\'width\'] != "":'
+p171
+sI3044
+S"                        attrcol.update(_width=c['width'])"
+p172
+sI3045
+S'                    if c[\'class\'] != "":'
+p173
+sI3046
+S"                        attrcol.update(_class=c['class'])"
+p174
+sI3047
+S"                    row.append(TH(c['label'], **attrcol))"
+p175
+sI3038
+S'                    row.append(TH(headers.get(c, c)))'
+p176
+sI3039
+S''
+ssg83
+S"(self=<gluon.sqlhtml.SQLTABLE object>, sqlrows=<Rows (3)>, linkto=None, upload=None, orderby=None, headers={}, truncate=16, columns=['jietibaogao.id', 'jietibaogao.zuozhe', 'jietibaogao.shijian', 'jietibaogao.jifen'], th_link='', extracolumns=[{'content': <function <lambda>>}], selectid=None, renderstyle=False, cid=None, colgroup=False, **attributes={})"
+p177
+sg85
+g50
+sasS'pyver'
+p178
+S'Python 2.7.6: D:\\program files\\WinPython-64bit-2.7.6.4\\python-2.7.6.amd64\\python.exe (prefix: D:\\program files\\WinPython-64bit-2.7.6.4\\python-2.7.6.amd64)'
+p179
+sS'session'
+p180
+g57
+(S'st\n\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">auth</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">expiration</td><td style="vertical-align:top;">:</td><td><div>3600</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">hmac_key</td><td style="vertical-align:top;">:</td><td><div>b76a96b4-6b1b-46ec-bd60-832b028ae99c</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">last_visit</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2014, 10, 15, 15, 20, 52, 701000)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remember_me</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">user</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">email</td><td style="vertical-align:top;">:</td><td><div>teacher@teacher.com</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">first_name</td><td style="vertical-align:top;">:</td><td><div>teacher</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">id</td><td style="vertical-align:top;">:</td><td><div>2L</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">jifen</td><td style="vertical-align:top;">:</td><td><div>0L</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">last_name</td><td style="vertical-align:top;">:</td><td><div>000000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">registration_id</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">registration_key</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">reset_password_key</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">yingcang</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">user_groups</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">2</td><td style="vertical-align:top;">:</td><td><div>user_2</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">3</td><td style="vertical-align:top;">:</td><td><div>teacher</div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">flash</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr></table></div>'
+tRp181
+sS'etype'
+p182
+S"<type 'exceptions.KeyError'>"
+p183
+sS'date'
+p184
+S'Wed Oct 15 15:20:52 2014'
+p185
+sS'response'
+p186
+g57
+(S's\x8c\x1f\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">body</td><td style="vertical-align:top;">:</td><td><div>&lt;cStringIO.StringO object at 0x000000000888F420&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cookies</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">session_id_nwoi</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-a165d2e5-133f-4019-b27a-da43917d7ab6<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div>/</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">delimiters</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>{{</div></td></tr><tr><td><div>}}</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">files</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">flash</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">form_label_separator</td><td style="vertical-align:top;">:</td><td><div>: </div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">formstyle</td><td style="vertical-align:top;">:</td><td><div>table3cols</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">generic_patterns</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>*</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">google_analytics_id</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">headers</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">X-Powered-By</td><td style="vertical-align:top;">:</td><td><div>web2py</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">logo</td><td style="vertical-align:top;">:</td><td><div><a class="brand" href="http://www.web2py.com/"><b>web<span>2</span>py</b>&trade;&nbsp;</a></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">menu</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div><table><tr><td><div>Home</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/nwoi/default/index</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>timus</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/nwoi/default/timus</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>tijiaos</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/nwoi/default/tijiaos</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>jietibaogao</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/nwoi/default/jietibaogaos</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">meta</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">author</td><td style="vertical-align:top;">:</td><td><div>Your Name &lt;you@example.com&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">generator</td><td style="vertical-align:top;">:</td><td><div>Web2py Web Framework</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">keywords</td><td style="vertical-align:top;">:</td><td><div>web2py, python, framework</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">models_to_run</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>^\\w+\\.py$</div></td></tr><tr><td><div>^default/\\w+\\.py$</div></td></tr><tr><td><div>^default/jietibaogaos/\\w+\\.py$</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">postprocessing</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_client</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_compression_level</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_expires</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_key</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_data_name</td><td style="vertical-align:top;">:</td><td><div>session_data_nwoi</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_file</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;e:\\\\documents\\\\nwoi\\\\web2py\\\\applications\\\\nwoi\\\\sessions\\\\05c\\\\0ef\\\\127.0.0.1-a165d2e5-133f-4019-b27a-da43917d7ab6&#x27;, mode &#x27;rb+&#x27; at 0x0000000008FF5D20&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_filename</td><td style="vertical-align:top;">:</td><td><div>e:\\documents\\nwoi\\web2py\\applications\\nwoi\\sessions\\127.0.0.1-a165d2e5-133f-4019-b27a-da43917d7ab6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_hash</td><td style="vertical-align:top;">:</td><td><div>9f30a3f11e0cd3f0ed078031c9d17559</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id</td><td style="vertical-align:top;">:</td><td><div>127.0.0.1-a165d2e5-133f-4019-b27a-da43917d7ab6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_name</td><td style="vertical-align:top;">:</td><td><div>session_id_nwoi</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_locked</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_masterapp</td><td style="vertical-align:top;">:</td><td><div>nwoi</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_new</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_storage_type</td><td style="vertical-align:top;">:</td><td><div>file</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">status</td><td style="vertical-align:top;">:</td><td><div>200</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">subtitle</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">title</td><td style="vertical-align:top;">:</td><td><div>\xe5\xae\x81\xe5\xa4\x96oi\xe4\xbf\xb1\xe4\xb9\x90\xe9\x83\xa8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">view</td><td style="vertical-align:top;">:</td><td><div>default/jietibaogaos.html</div></td></tr></table></div>'
+tRp187
+sS'locals'
+p188
+(dp189
+S'orderby'
+p190
+S'None'
+p191
+sS'c'
+S"{'content': <function <lambda>>}"
+p192
+sS'extracolumns'
+p193
+S"[{'content': <function <lambda>>}]"
+p194
+sS'REGEX_TABLE_DOT_FIELD'
+p195
+S'<_sre.SRE_Pattern object>'
+p196
+sS'truncate'
+p197
+S'16'
+p198
+sS'attrcol'
+p199
+g43
+sS'colgroup'
+p200
+S'False'
+p201
+sS'self'
+p202
+S'<gluon.sqlhtml.SQLTABLE object>'
+p203
+sS'cid'
+p204
+S'None'
+p205
+sS'renderstyle'
+p206
+g201
+sS'upload'
+p207
+S'None'
+p208
+sS'selectid'
+p209
+S'None'
+p210
+sS'headers'
+p211
+g43
+sS'components'
+p212
+S'[]'
+p213
+sS'th_link'
+p214
+S"''"
+p215
+sS'attributes'
+p216
+g43
+sS'row'
+p217
+S'[<gluon.html.TH object>, <gluon.html.TH object>, <gluon.html.TH object>, <gluon.html.TH object>]'
+p218
+sS'sqlrows'
+p219
+S'<Rows (3)>'
+p220
+sS'columns'
+p221
+S"['jietibaogao.id', 'jietibaogao.zuozhe', 'jietibaogao.shijian', 'jietibaogao.jifen']"
+p222
+sS'linkto'
+p223
+S'None'
+p224
+sssS'traceback'
+p225
+S'Traceback (most recent call last):\n  File "E:\\documents\\nwoi\\web2py\\gluon\\restricted.py", line 224, in restricted\n    exec ccode in environment\n  File "e:\\documents\\nwoi\\web2py\\applications\\nwoi\\controllers/default.py", line 302, in <module>\n  File "E:\\documents\\nwoi\\web2py\\gluon\\globals.py", line 392, in <lambda>\n    self._caller = lambda f: f()\n  File "E:\\documents\\nwoi\\web2py\\gluon\\tools.py", line 3439, in f\n    return action(*a, **b)\n  File "e:\\documents\\nwoi\\web2py\\applications\\nwoi\\controllers/default.py", line 228, in jietibaogaos\n    form=SQLTABLE(rows,extracolumns=[{\'content\':lambda row, rc: row.id}])\n  File "E:\\documents\\nwoi\\web2py\\gluon\\sqlhtml.py", line 3043, in __init__\n    if c[\'width\'] != "":\nKeyError: \'width\'\n'
+p226
+s.

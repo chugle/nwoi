@@ -1,0 +1,122 @@
+# -*- coding: utf-8 -*-
+# this file is released under public domain and you can use without limitations
+
+#########################################################################
+## This is a sample controller
+## - index is the default action of any application
+## - user is required for authentication and authorization
+## - download is for downloading files uploaded in the db (does streaming)
+## - api is an example of Hypermedia API support and access control
+#########################################################################
+from gluon.tools import Crud
+crud = Crud(db)
+crud.settings.download_url = URL('download')
+crud.settings.update_deletable = True
+crud.settings.keepvalues = True
+
+
+def index():
+    """
+    example action using the internationalization operator T and flash
+    rendered by views/default/index.html or views/generic.html
+
+    if you need a simple wiki simply replace the two lines below with:
+    return auth.wiki()
+    """
+    response.flash = T("Welcome to web2py!")
+    return dict(message=T('Hello World'))
+
+def createtimu():
+    return dict(form=crud.create(db.timu))
+
+#-unfinished[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+def tijiao():
+    form=FORM(
+        'tijiao',
+        INPUT(_name='oj',requires=[IS_NOT_EMPTY(),IS_IN_SET(['codevs','ningwai','szoj','jzxx','vijos','rqnoj'])]),
+        INPUT(_name='bianhao',requires=[IS_NOT_EMPTY(),IS_MATCH('^\d\d\d\d$',error_message='请输入正确题号')]),
+        INPUT(_type='submit')
+    )
+    if form.accepts(request,session):
+        if (db.timu(db.timu.oj)==form.vars.oj):
+            response.flash=form.vars.oj
+    elif form.errors:
+        response.flash = 'form has errors'
+    else:
+        response.flash = 'please fill the form'
+    return dict(form=form)
+#]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+
+def timus():
+    grid=SQLFORM.grid(
+        db.timu,
+        orderby=db.timu.bianhao,
+        create=True,
+        csv=False,
+        links_in_grid=True,
+       # links=dict(header='tijiao',body=lambda row:A())
+
+        )
+    return locals()
+
+def managetimus():
+    grid=SQLFORM.smartgrid(
+        db.timu,
+        deletable=False,
+        editable=True,
+        details=True,
+        selectable=None,
+        create=True
+    )
+    print(grid.editable)
+    return dict(form=grid)
+
+
+def user():
+    """
+    exposes:
+    http://..../[app]/default/user/login
+    http://..../[app]/default/user/logout
+    http://..../[app]/default/user/register
+    http://..../[app]/default/user/profile
+    http://..../[app]/default/user/retrieve_password
+    http://..../[app]/default/user/change_password
+    http://..../[app]/default/user/manage_users (requires membership in
+    use @auth.requires_login()
+        @auth.requires_membership('group name')
+        @auth.requires_permission('read','table name',record_id)
+    to decorate functions that need access control
+    """
+    return dict(form=auth())
+
+
+@cache.action()
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request, db)
+
+
+def call():
+    """
+    exposes services. for example:
+    http://..../[app]/default/call/jsonrpc
+    decorate with @services.jsonrpc the functions to expose
+    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+    """
+    return service()
+
+
+@auth.requires_login() 
+def api():
+    """
+    this is example of API with access control
+    WEB2PY provides Hypermedia API (Collection+JSON) Experimental
+    """
+    from gluon.contrib.hypermedia import Collection
+    rules = {
+        '<tablename>': {'GET':{},'POST':{},'PUT':{},'DELETE':{}},
+        }
+    return Collection(db).process(request,response,rules)
